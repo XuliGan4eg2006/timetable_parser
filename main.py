@@ -1,9 +1,17 @@
 import openpyxl
+import uvicorn
+
 from config import *
+from fastapi import FastAPI
 
 dataframe = openpyxl.load_workbook("book.xlsx")
 dataframe1 = dataframe.active
 
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 def get_groups():
     groups = []
@@ -13,8 +21,8 @@ def get_groups():
             groups.append(cell.value)
     return groups
 
-
-def get_group_lessons():
+@app.get("/timetable/{group}")
+def get_group_lessons(group: str):
     classes = {}
     groups = get_groups()
     selected_group = None
@@ -71,6 +79,7 @@ def get_group_lessons():
 
                 classes_counter += 1
 
-    print(classes)
+    return classes
 
-get_group_lessons()
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
