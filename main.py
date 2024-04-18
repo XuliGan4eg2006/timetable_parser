@@ -26,15 +26,6 @@ def get_groups():
             groups.append(cell.value)
     return groups
 
-
-@app.get("/breaks")
-def get_breaks():
-    return {"breaks": breaks}
-
-@app.get("/rings_shedule")
-def get_rings_shedule():
-    return {"rings_shedule": ''}
-
 @app.get("/groups")
 def return_groups():
     groups = get_groups()
