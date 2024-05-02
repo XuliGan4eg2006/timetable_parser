@@ -37,8 +37,8 @@ def get_lessons(group: str):
 
         counter += 1
 
-    # for lesson in classes[group]:
-    #     classes[group][lesson] = [val for pair in zip(classes[group][lesson], breaks) for val in pair]
+    for lesson in classes:
+        classes[lesson] = [val for pair in zip(classes[lesson], breaks) for val in pair]
 
     return classes
 
