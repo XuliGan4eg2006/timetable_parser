@@ -4,6 +4,8 @@ from config import *
 dataframe = openpyxl.load_workbook("llll.xlsx")
 dataframe1 = dataframe["01.04-06.04"]
 
+#TODO remap config group map
+
 breaks = ["Перемена 10 минут", "Перемена 30 минут", "Перемена 30 минут", "Перемена 10 минут", "Перемена 10 минут",
           "Конец пар"]
 
@@ -24,7 +26,17 @@ def get_lessons(group: str):
 
     for row in dataframe1[group_map[group] + "6": group_map[group] + "43"]:
         for cell in row:
-            all_lessons.append(cell.value)
+
+            class_to_write = str(cell.value).replace("None", "Нет урока")
+
+            replace_class = dataframe1.cell(row=cell.row, column=cell.column + 1).value
+            class_room_number = str(dataframe1.cell(row=cell.row, column=cell.column + 2).value).replace(".0",
+                                                                                                         "")
+
+            if replace_class is not None:
+                class_to_write += " | " + str(replace_class)
+
+            all_lessons.append(class_to_write + " ~ " + class_room_number)
 
     for lesson in all_lessons[2:]:
         if counter == 0 or counter == 6:
