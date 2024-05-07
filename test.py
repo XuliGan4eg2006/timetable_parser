@@ -1,3 +1,5 @@
+import json
+
 import openpyxl
 from config import *
 
@@ -52,7 +54,7 @@ def get_lessons(group: str):
     for lesson in classes:
         classes[lesson] = [val for pair in zip(classes[lesson], breaks) for val in pair]
 
-    return classes
+    return json.dumps(classes)
 
 
 print(get_lessons("ИСП9-123А"))
