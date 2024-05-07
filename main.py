@@ -45,8 +45,7 @@ def get_lessons(group: str):
     for row in dataframe1[group_map[group] + "6": group_map[group] + "43"]:
         for cell in row:
 
-            class_to_write = str(cell.value).replace("None", "Нет урока")
-
+            class_to_write = str(cell.value).replace("None", "Нет пары")
             replace_class = dataframe1.cell(row=cell.row, column=cell.column + 1).value
             class_room_number = str(dataframe1.cell(row=cell.row, column=cell.column + 2).value).replace(".0",
                                                                                                          "")
@@ -63,12 +62,22 @@ def get_lessons(group: str):
             classes[day_counter] = []
 
         classes[day_counter].append(lesson)
-        print(lesson)
+        # print(lesson)
 
         counter += 1
 
     for lesson in classes:
         classes[lesson] = [val for pair in zip(classes[lesson], breaks) for val in pair]
+
+    for day in classes:
+        if "Нет пары" in str(classes[day]):
+            for elem in classes[day]:
+                if "Нет пары" in elem:
+                    idx = classes[day].index(elem)
+                    break
+            classes[day] = classes[day][:idx]
+        else:
+            pass
 
     return classes
 
