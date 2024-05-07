@@ -4,8 +4,10 @@ import json
 from config import *
 from fastapi import FastAPI
 
-dataframe = openpyxl.load_workbook("lol.xlsx")
-dataframe1 = dataframe.active
+dataframe = openpyxl.load_workbook("llll.xlsx")
+dataframe1 = dataframe["01.04-06.04"]
+
+#TODO remap class map and make no lesson diaspear
 
 app = FastAPI()
 
@@ -37,7 +39,7 @@ def return_groups():
 def get_lessons(group: str):
     classes = {}
     counter = 0
-    day_counter = 0
+    day_counter = -1
     all_lessons = []
 
     for row in dataframe1[group_map[group] + "6": group_map[group] + "43"]:
@@ -68,7 +70,7 @@ def get_lessons(group: str):
     for lesson in classes:
         classes[lesson] = [val for pair in zip(classes[lesson], breaks) for val in pair]
 
-    return json.dumps(classes)
+    return classes
 
 
 if __name__ == "__main__":
