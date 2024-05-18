@@ -1,59 +1,11 @@
 import openpyxl
-import uvicorn
-import sqlite3
+import redis
+import requests
+from tqdm import tqdm
 from config import *
-from fastapi import FastAPI
-
-dataframe = openpyxl.load_workbook("llll.xlsx")
-dataframe1 = dataframe["01.04-06.04"]
-sqlite_conn = sqlite3.connect("base.db", check_same_thread=False)
-cursor = sqlite_conn.cursor()
-
-#TODO remap class map
-
-app = FastAPI()
-
-breaks = ["Перемена 10 минут", "Перемена 30 минут", "Перемена 30 минут", "Перемена 10 минут", "Перемена 10 минут",
-          "Конец пар"]
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-
-def get_groups():
-    groups = []
-    # getting all cell values in whole line 6
-    for cell in dataframe1[y_offset]:
-        if cell.value is not None and cell.value not in filter_words:
-            groups.append(cell.value)
-    return groups
-
-
-@app.get("/groups")
-def return_groups():
-    groups = get_groups()
-    return {"groups": groups}
-
-
-@app.get("/insert_token/{couple}")
-def insert_token(couple: str):
-    fcm_token, group = couple.split("|")
-
-    in_db = cursor.execute("SELECT COUNT(*) FROM users WHERE fcm_token = ?", (fcm_token,)).fetchone()
-
-    if in_db[0] == 0:
-        cursor.execute("INSERT INTO users VALUES (?, ?)", (fcm_token, group))
-        sqlite_conn.commit()
-    else:
-        cursor.execute("UPDATE users SET group_name = ? WHERE fcm_token = ?", (group, fcm_token))
-        sqlite_conn.commit()
-    return {"status": "ok"}
-
-
-@app.get("/timetable/{group}")
-def get_lessons(group: str):
+def get_lessons(dataframe, group):
     classes = {}
     counter = 0
     day_counter = -1
@@ -97,9 +49,36 @@ def get_lessons(group: str):
     for day in classes:
         if "Перемена" in classes[day][-1]:
             classes[day] = classes[day][:-1]
-
     return classes
 
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+def init_db():
+    dataframe = openpyxl.load_workbook("llll.xlsx")
+    dataframe1 = dataframe["01.04-06.04"]
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    print("Initing db.....")
+    for group in tqdm(group_map):
+        classes = str(get_lessons(dataframe1, group))
+        r.set(group, classes)
+    print("Done")
+
+
+def send_notification():
+    data = {
+        "message": {
+            "token": "fjrd0ZzRRcyC4EhgYDdnlB:APA91bHt1NBi6kIGpE3GGIVqCWgQFmm8aPczmjReT-2kPkGThSBi_zDFZWyQv9eXYbYoOWVuOhakUuKi3M-jb5X5MU_ZLgaz0w038VWAzGhWKxixp6sbl62uYPgshCnl1V2B_5oepJIZ",
+            "notification": {
+                "body": "This is an FCM notification message!",
+                "title": "FCM Message"
+            }
+        }
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ya29.a0AXooCgvhPMNLUsH1CN0iyzWqaKxMhiqzE0fIiDqj6-J7JBE4HCQdPJg5YwvV0h4j-xaeexpZ9pEMefhBRIXlZZRUpx5HNJJ35MLo_mCznsKd10CmrAEcMg1CNJjwRtPFUOxkPa_y-hQs7sT8bZpEgfwpwvcikBllIe0qaCgYKAZwSARESFQHGX2MiHLVftXAmueREbMjJ25yWFA0171"
+    }
+    req = requests.post("https://fcm.googleapis.com/v1/projects/mtusi-timetable/messages:send", json=data, headers=headers)
+
+    print(req.text)
+
+send_notification()
