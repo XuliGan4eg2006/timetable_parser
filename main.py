@@ -1,11 +1,14 @@
 import openpyxl
 import uvicorn
 import json
+import sqlite3
 from config import *
 from fastapi import FastAPI
 
 dataframe = openpyxl.load_workbook("llll.xlsx")
 dataframe1 = dataframe["01.04-06.04"]
+sqlite_conn = sqlite3.connect("base.db", check_same_thread=False)
+cursor = sqlite_conn.cursor()
 
 #TODO remap class map and make no lesson diaspear
 
@@ -35,6 +38,21 @@ def return_groups():
     return {"groups": groups}
 
 
+@app.get("/insert_token/{couple}")
+def insert_token(couple: str):
+    fcm_token, group = couple.split("|")
+
+    in_db = cursor.execute("SELECT COUNT(*) FROM users WHERE fcm_token = ?", (fcm_token,)).fetchone()
+
+    if in_db[0] == 0:
+        cursor.execute("INSERT INTO users VALUES (?, ?)", (fcm_token, group))
+        sqlite_conn.commit()
+    else:
+        cursor.execute("UPDATE users SET group_name = ? WHERE fcm_token = ?", (group, fcm_token))
+        sqlite_conn.commit()
+    return {"status": "ok"}
+
+
 @app.get("/timetable/{group}")
 def get_lessons(group: str):
     classes = {}
@@ -44,7 +62,6 @@ def get_lessons(group: str):
 
     for row in dataframe1[group_map[group] + "6": group_map[group] + "43"]:
         for cell in row:
-
             class_to_write = str(cell.value).replace("None", "Нет пары")
             replace_class = dataframe1.cell(row=cell.row, column=cell.column + 1).value
             class_room_number = str(dataframe1.cell(row=cell.row, column=cell.column + 2).value).replace(".0",
@@ -78,6 +95,10 @@ def get_lessons(group: str):
             classes[day] = classes[day][:idx]
         else:
             pass
+
+    for day in classes:
+        if "Перемена" in classes[day][-1]:
+            classes[day] = classes[day][:-1]
 
     return classes
 
