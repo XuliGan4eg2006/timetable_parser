@@ -1,19 +1,9 @@
-import ast
-import os
-import sqlite3
-
 import openpyxl
 import redis
-import time
-from redis_updater import download_sheet
-from fcm import send_notification
+import requests
+import os
+from tqdm import tqdm
 from config import *
-
-r = redis.Redis(host='localhost', port=6379, db=0)
-print("Initing db.....")
-
-sqlite_conn = sqlite3.connect("base.db", check_same_thread=False)
-cursor = sqlite_conn.cursor()
 
 
 def get_lessons(dataframe, group):
@@ -64,30 +54,31 @@ def get_lessons(dataframe, group):
     return classes
 
 
-def start_notification_worker():
-    while True:
-        print("Downloading temp sheet...")
-        download_sheet("temp.xlsx")
-        print("Done")
+def update_db():
+    dataframe = openpyxl.load_workbook("llll.xlsx")
+    dataframe1 = dataframe[selected_page]
 
-        dataframe = openpyxl.load_workbook("temp.xlsx")
-        dataframe1 = dataframe[selected_page]
+    r = redis.Redis(host='localhost', port=6379, db=0)
+    print("Initing db.....")
 
-        for group in group_map:
-            old = r.get(group)
-            old_dict = ast.literal_eval(old.decode('utf-8'))
+    for group in tqdm(group_map):
+        classes = str(get_lessons(dataframe1, group))
+        r.set(group, classes)
 
-            new = get_lessons(dataframe1, group)
-            if old_dict != new:
-                cursor.execute("SELECT fcm_token FROM users WHERE group_name = ?", (group,))
-                tokens = cursor.fetchall()
-                if len(tokens) > 0:
-                    for token in tokens:
-                        print("Sending notification to " + token[0])
-                        send_notification(token[0], "Есть изменения в расписании",
-                                          f"Для группы {group} есть изменения в расписании")
-                    r.set(group, str(new))
-                    print("Updated " + group)
-        os.remove("temp.xlsx")
-        print("Sleeping...")
-        time.sleep(1800)
+    print("Done")
+    print(r.get("ИСП9-321БП"))
+
+
+def download_sheet(new_sheet_name="llll.xlsx"):
+    req = requests.get(download_url)
+    if req.status_code == 200:
+
+        if new_sheet_name == "llll.xlsx":
+            os.remove("llll.xlsx")
+
+        with open(new_sheet_name, "wb") as f:
+            f.write(req.content)
+        return True
+    else:
+        print("Error downloading sheet")
+        return False
