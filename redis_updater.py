@@ -5,6 +5,8 @@ import os
 from tqdm import tqdm
 from config import *
 
+r = redis.Redis(host='localhost', port=6379, db=0)
+
 
 def get_lessons(dataframe, group):
     classes = {}
@@ -55,11 +57,8 @@ def get_lessons(dataframe, group):
 
 
 def update_db():
-    dataframe = openpyxl.load_workbook("llll.xlsx")
+    dataframe = openpyxl.load_workbook("xlsxs/llll.xlsx")
     dataframe1 = dataframe[selected_page]
-
-    r = redis.Redis(host='localhost', port=6379, db=0)
-    print("Initing db.....")
 
     for group in tqdm(group_map):
         classes = str(get_lessons(dataframe1, group))
@@ -74,11 +73,20 @@ def download_sheet(new_sheet_name="llll.xlsx"):
     if req.status_code == 200:
 
         if new_sheet_name == "llll.xlsx":
-            os.remove("llll.xlsx")
+            try:
+                os.remove("xlsxs/llll.xlsx")
+            except:
+                pass
 
-        with open(new_sheet_name, "wb") as f:
+        with open("xlsxs/" + new_sheet_name, "wb") as f:
             f.write(req.content)
         return True
     else:
         print("Error downloading sheet")
         return False
+
+
+def insert_groups():
+    r.set("groups", str(groups).replace("[", "").replace("]", ""))
+
+insert_groups()

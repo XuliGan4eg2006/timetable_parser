@@ -1,0 +1,6 @@
+redis
+uvicorn
+fastapi
+openpyxl
+requests
+tqdm

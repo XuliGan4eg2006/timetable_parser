@@ -1,0 +1,5 @@
+redis
+openpyxl
+requests
+tqdm
+firebase_admin
