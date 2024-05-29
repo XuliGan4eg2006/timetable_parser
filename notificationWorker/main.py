@@ -2,18 +2,21 @@ import ast
 import os
 import sqlite3
 
-# import openpyxl
+import openpyxl
 import redis
+import psycopg2
 import time
-# from redis_updater import download_sheet
+#from redis_updater import download_sheet
 from fcm import send_notification
 #from config import *
 
 r = redis.Redis(host='redis', port=6379, db=0)
 print("Initing db.....")
 
-# sqlite_conn = sqlite3.connect("../apiServer/base.db", check_same_thread=False) #TODO migrate to postgres
-# cursor = sqlite_conn.cursor()
+psycopg_connection = psycopg2.connect(dbname='mtusi', user='postgres', password='lmao123',
+                                      host='db',
+                                      port='5432')
+cursor = psycopg_connection.cursor()
 
 
 # def get_lessons(dataframe, group):
@@ -67,6 +70,9 @@ print("Initing db.....")
 
 while True:
     print("Downloading temp sheet...")
+    cursor.execute("SELECT fcm_token FROM users")
+    tokens = cursor.fetchall()
+    print("Done")
     # download_sheet("temp.xlsx")
     # print("Done")
     #
@@ -79,7 +85,7 @@ while True:
     #
     #     new = get_lessons(dataframe1, group)
     #     if old_dict != new:
-    #         cursor.execute("SELECT fcm_token FROM users WHERE group_name = ?", (group,))
+    #         cursor.execute("SELECT fcm_token FROM users WHERE group_name = %s", (group,))
     #         tokens = cursor.fetchall()
     #         if len(tokens) > 0:
     #             for token in tokens:
@@ -89,5 +95,5 @@ while True:
     #             r.set(group, str(new))
     #             print("Updated " + group)
     # os.remove("temp.xlsx")
-    # print("Sleeping...")
+    print("Sleeping...")
     time.sleep(1800)

@@ -4,3 +4,4 @@ fastapi
 openpyxl
 requests
 tqdm
+psycopg2-binary
