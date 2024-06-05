@@ -87,3 +87,11 @@ def download_sheet(new_sheet_name="llll.xlsx"):
 
 def insert_groups():
     r.set("groups", str(groups).replace("[", "").replace("]", ""))
+
+
+def insert_config():
+    r.set("download_url", download_url)
+    r.set("group_map", str(group_map))
+    r.set("breaks", str(breaks).replace("[", "").replace("]", "").replace('"', '').replace("'", ""))
+    r.set("selected_page", selected_page)
+

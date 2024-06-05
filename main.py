@@ -3,10 +3,13 @@ import psycopg2
 import redis
 from fastapi import FastAPI
 
+
+app_actual_version = 3
+
 r = redis.Redis(host='redis', port=6379, db=0)
 print("Initing db.....")
 
-psycopg_connection = psycopg2.connect(dbname='mtusi', user='postgres', password='lmao123',
+psycopg_connection = psycopg2.connect(dbname='mtusi', user='postgres', password='lmaooo123',
                                       host='db',
                                       port='5432')
 cursor = psycopg_connection.cursor()
@@ -48,6 +51,10 @@ def get_lessons(group: str):
     ret = r.get(group)
     return ast.literal_eval(ret.decode('utf-8'))
 
+
+@app.get("/app_version")
+def get_lessons():
+    return {"actual_version": app_actual_version}
 
 # def start_server():
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
