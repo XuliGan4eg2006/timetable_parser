@@ -1,6 +1,6 @@
 redis
 uvicorn
-fastapi
+fastapi[standard]
 openpyxl
 requests
 tqdm
