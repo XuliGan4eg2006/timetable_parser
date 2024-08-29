@@ -1,5 +1,5 @@
-Старая и одна из первых версий бекенда для https://github.com/XuliGan4eg2006/mtusi_timetable 
-Частично переделанная версия бека на расте: https://github.com/XuliGan4eg2006/mtusiServer_Rust
+Старая и одна из первых версий бекенда для https://github.com/XuliGan4eg2006/mtusi_timetable <br>
+Частично переделанная версия бека на расте: https://github.com/XuliGan4eg2006/mtusiServer_Rust <br>
 
 # Install and run 
 
