@@ -1,3 +1,6 @@
+Старая и одна из первых версий бекенда для https://github.com/XuliGan4eg2006/mtusi_timetable 
+Частично переделанная версия бека на расте: https://github.com/XuliGan4eg2006/mtusiServer_Rust
+
 # Install and run 
 
 ```git clone ...``` <br>
